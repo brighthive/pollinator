@@ -53,7 +53,6 @@ DOCKER_SCHEMA = {
     }, 
     "required": ["image_name"]
 }
-
 AIRFLOW_USERS_SCHEMA = {
     "type": "object",
     "properties": {
@@ -70,6 +69,7 @@ AIRFLOW_SCHEMA = {
     "type": "object",
     "properties": {
         "user": {"type": "string"},
+        "webserver_port": {"type": "number"},
         "email": {
             "type": "object",
             "properties": {

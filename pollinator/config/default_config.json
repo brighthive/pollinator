@@ -22,6 +22,7 @@
     },
     "airflow": {
         "user": "admin",
+        "webserver_port": 8080,
         "users":[
             {
                 "role": "admin"

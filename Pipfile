@@ -11,6 +11,7 @@ e1839a8 = {editable = true,path = "."}
 jsonschema = "*"
 jsonmerge = "*"
 jinja2 = "*"
+cryptography = "*"
 
 [requires]
 python_version = "3.7"

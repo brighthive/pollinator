@@ -2,6 +2,9 @@ import os
 import sys
 import configparser
 import json 
+from cryptography.fernet import Fernet
+
+DEFAULT_FERNET_KEY = Fernet.generate_key().decode()
 
 def get_version():
     version = None
@@ -43,6 +46,7 @@ class Config:
             VERSION (str): Current version
     """
 
+    FERNET_KEY = DEFAULT_FERNET_KEY
     VERSION = get_version()
     RELATIVE_PATH = get_relative_path()
     ABSOLUTE_PATH = get_absolute_path()

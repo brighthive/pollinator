@@ -62,24 +62,37 @@ class PollinatorEnvironment(object):
         return self.get_platform_property('include_pollinator_dags')
     
     @property
-    def user(self):
+    def airflow_user(self):
         return self.get_airflow_property("user")
 
     @property
-    def email_address(self):
-        return self.get_airflow_property("email")["email_address"]
+    def airflow_email_address(self):
+        if self.get_airflow_property("email") is not None:
+            return self.get_airflow_property("email")["email_address"]
+        return None
     
     @property
-    def email_password(self):
-        return self.get_airflow_property("email")["password"]
+    def airflow_email_password(self):
+        if self.get_airflow_property("email") is not None:
+            return self.get_airflow_property("email")["password"]
+        return None
     
     @property
     def airflow_smtp_host(self):
-        return self.get_airflow_property("email")["smtp_host"]
-    
+        if self.get_airflow_property("email") is not None:
+            return self.get_airflow_property("email")["smtp_host"]
+        return None
     @property
     def airflow_smtp_port(self):
-        return self.get_airflow_property("email")["smtp_port"]
+        if self.get_airflow_property("email") is not None:
+            return self.get_airflow_property("email")["smtp_port"]
+        return None
+
+    @property
+    def include_airflow_email(self):
+        if self.airflow_email_password is not None and self.airflow_email_address is not None:
+            return self.airflow_email_address.strip() is not '' and self.airflow_email_password.strip() is not ''
+        return False
 
     @property 
     def airflow_home(self):
@@ -106,25 +119,26 @@ class PollinatorEnvironment(object):
         return self.get_airflow_property('users')
     
     @property
-    def webserver_port(self):
-        return self.get_airflow_property("airflow.webserver.container.port")
+    def airflow_webserver_port(self):
+        return self.get_airflow_property("webserver_port")
         
     @property
     def postgres_port(self):
-        return self.get_airflow_property('airflow.postgres.container.port')
+        return self.get_postgres_property('port')
     
     @property
-    def airflow_authentication_user(self):
-        return self.get_airflow_property('airflow.authentication.user')
-
-    @property
-    def airflow_authentication_email(self):
-        return self.get_airflow_property('airflow.authentication.email')
+    def postgres_user(self):
+        return self.get_postgres_property('user')
     
     @property
-    def airflow_authentication_password(self):
-        return self.get_airflow_property('airflow.authentication.password')
+    def postgres_password(self):
+        return self.get_postgres_property('password')
 
+    @property
+    def airflow_alchemy_conn_url(self):
+        return "postgresql+psycopg2://{}:{}@postgres:{}/airflow".format(
+            self.postgres_user, self.postgres_password, self.postgres_port
+        )
     @property
     def docker_name(self):
         return self.get_docker_property("image_name")
@@ -143,3 +157,7 @@ class PollinatorEnvironment(object):
             combined_modules_list.extend(self.CELERY_AIRFLOW_MODULES)
 
         return combined_modules_list
+
+    @property
+    def fernet_key(self):
+        return Config.FERNET_KEY
