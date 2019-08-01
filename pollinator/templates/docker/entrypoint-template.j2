@@ -14,8 +14,8 @@ set -e
 # Defaults for Airflow Postgres DB
 : "${POSTGRES_HOST:="postgres"}"
 : "${POSTGRES_PORT:="{{ environment.postgres_port }}"}"
-: "${POSTGRES_USER:="airflow"}"
-: "${POSTGRES_PASSWORD:="airflow"}"
+: "${POSTGRES_USER:="{{ environment.postgres_user}}"}"
+: "${POSTGRES_PASSWORD:="{{ environment.postgres_password}}"}"
 : "${POSTGRES_DB:="airflow"}"
 
 
@@ -32,7 +32,7 @@ fi
 
 # Defaults and back-compat
 : "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
-: "${AIRFLOW__CORE__EXECUTOR:={{ environment.airflow_executor }}"
+: "${AIRFLOW__CORE__EXECUTOR:={{ environment.platform_executor }}"
 
 {% if environment.include_aws %}
 # Set up AWS using credentials

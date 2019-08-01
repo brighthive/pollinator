@@ -101,7 +101,7 @@ load_examples = {{ environment.include_examples }}
 plugins_folder = {{ environment.airflow_plugins_folder}}
 
 # Secret key to save connection passwords in the db
-fernet_key = "{{ environment.fernet_key }}"
+fernet_key = $FERNET_KEY
 
 # Whether to disable pickling dags
 donot_pickle = False

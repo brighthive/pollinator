@@ -2,7 +2,6 @@
     "platform":{
         "name": "brighthive_airflow_docker",
         "executor": "celery",
-        "include_files": true,
         "include_hive": true,
         "include_aws": true,
         "include_examples": true,
@@ -11,7 +10,8 @@
     "postgres" : {
         "user": "airflow",
         "password": "airflow",
-        "port": 5439
+        "internal_port": 5432,
+        "external_port": 5432
     },
     "docker": {
         "image_name": "brighthive_airflow_docker",

@@ -112,7 +112,6 @@ class Config:
 
         access_key_id = credentials[profile_name]["aws_access_key_id"]
         secret_access_key = credentials[profile_name]["aws_secret_access_key"]
-
         # Get AWS region and output from config file
         config_path = os.path.join(aws_dir, "config")
         config = configparser.ConfigParser()

@@ -26,28 +26,59 @@ class PollinatorEnvironment(object):
     
     def get_postgres_property(self, property_name):
         return self._platform_config.get_property(property_name, 'postgres') 
+        
+    def get_aws_property(self, property_name):
+        return self._platform_config.get_property(property_name, 'aws') 
 
     @property
     def platform_name(self):
         return self.get_platform_property('name')
     
+    @property   
+    def platform_user(self):
+        return self.platform_name+'_admin'
+    
+    @property
+    def platform_group(self):
+        return self.platform_name+'_group'
+    
     @property
     def platform_executor(self):
         platform_config_executor = self.get_platform_property('executor')
 
-        if platform_config_executor is 'local' or platform_config_executor is 'LocalExecutor':
+        if platform_config_executor.lower() == 'local' or platform_config_executor.lower() == 'localexecutor':
             return self.LOCAL_EXECUTOR
         
-        if platform_config_executor is 'celery' or platform_config_executor is 'CeleryExecutor':
+        if platform_config_executor.lower() == 'celery' or platform_config_executor.lower() == 'celeryexecutor':
             return self.CELERY_EXECTOR
 
     @property
-    def is_hive_included(self):
+    def include_examples(self):
+        return self.get_platform_property('include_examples')
+    
+    @property
+    def include_hive(self):
         return self.get_platform_property('include_hive')
     
     @property
-    def is_aws_included(self):
+    def include_aws(self):
         return self.get_platform_property('include_aws')
+    
+    @property
+    def aws_access_key_id(self):
+        return self.get_aws_property('access_key_id')
+
+    @property
+    def aws_secret_access_key(self):
+        return self.get_aws_property('secret_access_key')
+        
+    @property
+    def aws_region(self):
+        return self.get_aws_property('region')
+    
+    @property
+    def aws_output(self):
+        return self.get_aws_property('output')
     
     @property
     def is_extra_files_included(self):
@@ -121,10 +152,14 @@ class PollinatorEnvironment(object):
     @property
     def airflow_webserver_port(self):
         return self.get_airflow_property("webserver_port")
-        
+
     @property
     def postgres_port(self):
-        return self.get_postgres_property('port')
+        return self.get_postgres_property('internal_port')
+    
+    @property
+    def postgres_exposed_port(self):
+        return self.get_postgres_property("external_port")
     
     @property
     def postgres_user(self):
@@ -143,11 +178,10 @@ class PollinatorEnvironment(object):
     def docker_name(self):
         return self.get_docker_property("image_name")
 
-
     @property
     def airflow_submodules(self):
         combined_modules_list = self.BASE_AIRFLOW_MODULES
-        if self.is_hive_included:
+        if self.include_hive:
             combined_modules_list.extend(self.HIVE_AIRFLOW_MODULES)
 
         if self.included_submodules is not None:
@@ -161,3 +195,13 @@ class PollinatorEnvironment(object):
     @property
     def fernet_key(self):
         return Config.FERNET_KEY
+    
+    @property
+    def include_pipfile(self):
+        pipfile_path = os.path.join(Config.PLATFORM_ROOT_PATH, 'Pipfile')
+        return os.path.exists(pipfile_path)
+
+    @property
+    def include_requirements(self):
+        requirements_path = os.path.join(Config.PLATFORM_ROOT_PATH, 'requirements.txt')
+        return os.path.exists(requirements_path)

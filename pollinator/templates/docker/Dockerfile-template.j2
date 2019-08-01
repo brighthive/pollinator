@@ -18,11 +18,11 @@ LABEL maintainer="BrightHive <amanda@brighthive.io>"
 
 ARG BUILD_DATE="{{ environment.default_build_date }}" 
 ARG	BUILD_NUMBER=-1
-ARG ORG="{{ environment.org }}" 
+ARG ORG="{{ environment.platform_name }}" 
 ARG AIRFLOW_VERSION="1.10.3" 
 ARG AIRFLOW_SUBMODULES="{% for module in environment.airflow_submodules %}{{ module}}, {% endfor %}" 
-ARG	BRIGHTHIVE_USER="{{ environment.user }}" 
-ARG	BRIGHTHIVE_GROUP="{{ environment.group }}"
+ARG	BRIGHTHIVE_USER="{{ environment.platform_user }}" 
+ARG	BRIGHTHIVE_GROUP="{{ environment.platform_group }}"
 
 LABEL io.brighthive.docker.build_date=$BUILD_DATE \
 	io.brighthive.docker.name="brighthive_airflow" \

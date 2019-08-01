@@ -38,7 +38,8 @@ POSTGRES_SCHEMA = {
     "properties": {
         "user": {"type": "string"},
         "password": {"type": "string"},
-        "port": {"type": "number"}
+        "internal_port": {"type": "number"},
+        "external_port": {"type": "number"}
     }
 }
 
