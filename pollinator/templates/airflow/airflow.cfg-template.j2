@@ -312,7 +312,7 @@ smtp_ssl = False
 smtp_user = {{ environment.airflow_email }}
 smtp_password = {{ environment.airflow_email_password}}
 smtp_port = {{ environment.airflow_smtp_port }}
-smtp_mail_from = brighthive.airflow@gmail.com
+smtp_mail_from = {{ environment.airflow_email }}
 
 
 [celery]
