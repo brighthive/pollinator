@@ -142,12 +142,12 @@ class PollinatorEnvironment(object):
     def airflow_submodules(self):
         combined_modules_list = self.BASE_AIRFLOW_MODULES
         if self.is_hive_included:
-            combined_modules_list.append(self.HIVE_AIRFLOW_MODULES)
+            combined_modules_list.extend(self.HIVE_AIRFLOW_MODULES)
 
         if self.included_submodules is not None:
-            combined_modules_list.append(self.included_submodules)
+            combined_modules_list.extend(self.included_submodules)
 
         if self.platform_executor == self.CELERY_EXECTOR:
-            combined_modules_list.append(self.CELERY_AIRFLOW_MODULES)
+            combined_modules_list.extend(self.CELERY_AIRFLOW_MODULES)
 
         return combined_modules_list
