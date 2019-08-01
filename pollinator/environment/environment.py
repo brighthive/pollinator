@@ -23,6 +23,9 @@ class PollinatorEnvironment(object):
     
     def get_airflow_property(self, property_name):
         return self._platform_config.get_property(property_name, 'airflow') 
+    
+    def get_postgres_property(self, property_name):
+        return self._platform_config.get_property(property_name, 'postgres') 
 
     @property
     def platform_name(self):
@@ -83,6 +86,18 @@ class PollinatorEnvironment(object):
         return self.get_docker_property('airflow_home')
 
     @property
+    def airflow_dags_folder(self):
+        return os.path.join(self.airflow_home(), 'dags')
+    
+    @property
+    def airflow_logs_folder(self):
+        return os.path.join(self.airflow_home, 'logs')
+    
+    @property
+    def airflow_plugins_folder(self):
+        return os.path.join(self.airflow_home, 'plugins')
+
+    @property
     def included_submodules(self):
         return self.get_docker_property('airflow_submodules')
     
@@ -109,34 +124,11 @@ class PollinatorEnvironment(object):
     @property
     def airflow_authentication_password(self):
         return self.get_airflow_property('airflow.authentication.password')
-    
-    @property
-    def airflow_rabbitmq_host(self):
-        return self.get_airflow_property('airflow.rabbitmq.host')
-    
-    @property
-    def airflow_rabbitmq_port(self):
-        return self.get_airflow_property('airflow.rabbitmq.port')
 
     @property
     def docker_name(self):
-        return self.get_platform_property("name") + "_airflow"
+        return self.get_docker_property("image_name")
 
-    @property 
-    def airflow_db_host_port(self):
-        return self.get_platform_property("airflow.postgres.host.port")
-
-    @property
-    def airflow_db_container_port(self):
-        return self.get_platform_property("airflow.postgres.container.port")
-    
-    @property
-    def airflow_webserver_host_port(self):
-        return self.get_platform_property("airflow.webserver.host.port")
-    
-    @property
-    def airflow_webserver_container_port(self):
-        return self.get_platform_property("airflow.webserver.container.port")
 
     @property
     def airflow_submodules(self):

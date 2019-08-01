@@ -100,51 +100,6 @@ SCHEMA = {
     "required": ["platform", "airflow", "docker"]
 }
 
-DEFAULT_CONFIG = {
-    "platform":{
-        "name": "brighthive_test_platform",
-        "executor": "celery",
-        "include_files": True,
-        "include_hive": True,
-        "include_aws": True,
-        "include_examples": True,
-        "include_pollinator_dags": True,
-    },
-    "aws": {
-        "access_key_id": "<ACCESS_KEY_ID>",
-        "secret_access_key": "<SECRET_ACCESS_KEY>"
-    },
-    "postgres" : {
-        "user": "airflow",
-        "password": "airflow",
-        "port": 5439
-    },
-    "docker": {
-        "image_name": "brighthive_test",
-        "load_pipfile": True,
-        "load_requirements": True,
-        "airflow_home": "/usr/local/home",
-        "airflow_submodules": []
-    },
-    "airflow": {
-        "user": "admin",
-        "email": {
-            "email_address": "airflow@brighthive.io",
-            "password": "<EMAIL_PASSWORD>",
-            "smtp_host": "smtp.google.org",
-            "smtp_port": 555
-        },
-        "users":[
-            {
-                "firstname": "Amanda",
-                "lastname": "Crawford",
-                "email_address": "amanda@brighthive.io",
-                "password": "<LOGIN_PASSWORD>"
-            }
-        ]
-    }
-}
-
 class PollinatorConfigParser():
 
     def __init__(self, config_file):
