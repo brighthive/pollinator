@@ -1,0 +1,81 @@
+---
+version: "3"
+
+volumes:
+  postgres_data:
+  airflow_logs: 
+
+services:
+  redis:
+    image: 'redis:3.2.7'
+    # command: redis-server --requirepass redispass
+  
+  postgres:
+    image: postgres:10.1-alpine
+    restart: unless-stopped
+    ports:
+      - "{{ environment.airflow_db_host_port }}:{{ environment.airflow_db_container_port}}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+  
+  flower:
+    image: $DOCKER_IMAGE:${DOCKER_IMAGE_TAG}
+    restart: always
+    depends_on:
+      - redis
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:{{airflow_db_container_port}}/airflow
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+        # - REDIS_PASSWORD=redispass
+    ports:
+        - "5555:5555"
+    command: flower
+  
+  hive:
+    image: cloudera/quickstart:latest
+    container_name: hive-docker
+    restart: always
+    depends_on:
+        - postgres
+    ports:
+        - 8888:8888
+        - 10000:10000
+        - 7180:7180
+        - 8020:8020
+    hostname: quickstart.cloudera
+    privileged: true
+    tty: true
+    command: /usr/bin/docker-quickstart
+
+  scheduler:
+    image: $DOCKER_IMAGE:${DOCKER_IMAGE_TAG}
+    command: ["airflow", "scheduler"]
+    restart: unless-stopped
+    user: "{{ environment.user }}"
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:{{airflow_db_container_port}}/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    volumes:
+      - ./airflow/dags:/usr/local/airflow/dags:ro
+      - ./airflow/plugins:/usr/local/airflow/plugins:ro
+      - airflow_logs:/usr/local/airflow/logs
+
+  webserver:
+    image: $DOCKER_IMAGE:${DOCKER_IMAGE_TAG}
+    command: webserver
+    restart: unless-stopped
+    user: "{{ environment.user }}"
+    depends_on:
+      - scheduler 
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:{{airflow_db_container_port}}/airflow
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+    ports:
+      - "{{ environment.airflow_webserver_host_port }}:{{ environment.airflow_webserver_container_port}}"
+    volumes:
+      - ./airflow/dags:{{ environment.airflow_home }}/dags:ro
+      - ./airflow/plugins:{{ environment.airflow_home }}/plugins:ro
+      - airflow_logs:{{ environment.airflow_home }}/logs

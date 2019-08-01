@@ -1,0 +1,4 @@
+config.json
+\.vscode/\.ropeproject/
+
+pollinator\.egg-info/

@@ -1,0 +1,16 @@
+import airflow
+from airflow import (models,
+                     settings)
+from airflow.contrib.auth.backends.password_auth import PasswordUser
+
+
+user = PasswordUser(models.User())
+user.username = "{{ environment.airflow_authentication_user }}"
+user.email    = "{{ environment.airflow_authentication_email }}"
+user.password = "{{ environment.airflow_authentication_password }}"
+
+session = settings.Session()
+if not session.query(PasswordUser).filter(PasswordUser.username == "{{ environment.airflow_authentication_user }}").first():
+    session.add(user)
+    session.commit()
+session.close()

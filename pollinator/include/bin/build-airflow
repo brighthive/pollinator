@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+function build_image()  {
+    dockerfile="Dockerfile"
+    image_build_opts="--build-arg BUILD_NUMBER=${BUILD_NUMBER}"
+    image_version="${BUILD_NUMBER}-master"
+
+    if [ -f "${dockerfile}" ]; then
+        docker build ${build_opts} -t "brighthive/${ORG}_airflow:${image_version}" .  --no-cache || exit 1
+    else
+        echo "No Dockerfile found" && exit 1
+    fi
+
+}
+build_image

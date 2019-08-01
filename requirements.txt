@@ -1,0 +1,10 @@
+-i https://pypi.org/simple
+-e .
+attrs==19.1.0
+click==7.0
+jinja2==2.10.1
+jsonmerge==1.6.1
+jsonschema==3.0.1
+markupsafe==1.1.1
+pyrsistent==0.15.4
+six==1.12.0

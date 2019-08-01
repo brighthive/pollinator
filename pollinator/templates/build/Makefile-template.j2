@@ -1,0 +1,19 @@
+
+BUILD_NUMBER ?= "1.0.0"
+ORG ?= "{{ environment.org }}"
+
+# Set default for make
+.DEFAULT_GOAL := build
+
+.PHONY: init
+init:
+	chmod +x bin/build-airflow
+
+.PHONY: build
+build: init
+{% raw %}	ORG=${ORG} \
+	BUILD_NUMBER=${BUILD_NUMBER} \{% endraw %}
+	bin/build-airflow
+
+run:
+	docker-compose up
