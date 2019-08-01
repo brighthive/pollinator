@@ -87,7 +87,7 @@ class PollinatorEnvironment(object):
 
     @property
     def airflow_dags_folder(self):
-        return os.path.join(self.airflow_home(), 'dags')
+        return os.path.join(self.airflow_home, 'dags')
     
     @property
     def airflow_logs_folder(self):
