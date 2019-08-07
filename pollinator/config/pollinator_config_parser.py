@@ -13,13 +13,11 @@ PLATFORM_SCHEMA = {
     "properties": {
         "name": {"type": "string"},
         "executor": {"type": "string", "enum": ["local", "celery", "LocalExecutor", "CeleryExecutor"]},
-        "include_files": {"type": "boolean"},
         "include_hive": {"type": "boolean"},
         "include_aws": {"type": "boolean"},
         "include_examples": {"type": "boolean"},
-        "include_pollinator_dags": {"type": "boolean"}    
     },
-    "required": ["name"]
+    "required": ["name", "executor"]
 }
 
 AWS_SCHEMA = {

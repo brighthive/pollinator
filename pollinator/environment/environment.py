@@ -205,3 +205,7 @@ class PollinatorEnvironment(object):
     def include_requirements(self):
         requirements_path = os.path.join(Config.PLATFORM_ROOT_PATH, 'requirements.txt')
         return os.path.exists(requirements_path)
+
+    @property
+    def include_authorized_users(self):
+        return len(self.user_accounts) != 0

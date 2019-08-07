@@ -88,12 +88,20 @@ export \
   AWS_OUTPUT 
 {% endif %}
 
-
-
+{% if environment.include_authorized_users %}
+add_airflow_users() {
+  {% for user in environment.user_accounts %}
+  airflow create_user -r {{user.role}} -f {{user.firstname}} -l {{user.lastname}} -e {{user.email}} -p {{user.password}}
+  {% endfor %}
+}
+{% endif %}
 case "$1" in
   webserver)
     nohup airflow initdb &>/dev/null  &
+    {% if environment.include_authorized_users %}
     sleep 1m
+    add_airflow_users
+    {%  endif  %}
     if [ "$AIRFLOW__CORE__EXECUTOR" = "LocalExecutor" ]; then
       # With the "Local" executor it should all run in one container.
       airflow scheduler &

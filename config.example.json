@@ -2,11 +2,9 @@
     "platform":{
         "name": "<PLATFORM_NAME>",
         "executor": "celery",
-        "include_files": true,
         "include_hive": true,
         "include_aws": true,
-        "include_examples": true,
-        "include_pollinator_dags": true
+        "include_examples": true
     },
     "aws": {
         "access_key_id": "<ACCESS_KEY_ID>",

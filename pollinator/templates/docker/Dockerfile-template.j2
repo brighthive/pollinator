@@ -20,7 +20,7 @@ ARG BUILD_DATE="{{ environment.default_build_date }}"
 ARG	BUILD_NUMBER=-1
 ARG ORG="{{ environment.platform_name }}" 
 ARG AIRFLOW_VERSION="1.10.3" 
-ARG AIRFLOW_SUBMODULES="{% for module in environment.airflow_submodules %}{{ module}}, {% endfor %}" 
+ARG AIRFLOW_SUBMODULES="{{environment.airflow_submodules|join(",")|replace("'", "")}}" 
 ARG	BRIGHTHIVE_USER="{{ environment.platform_user }}" 
 ARG	BRIGHTHIVE_GROUP="{{ environment.platform_group }}"
 
@@ -103,8 +103,8 @@ RUN apk update \
 	{% if environment.include_aws %}
 	&& pip3 install awscli \
 	{% endif %}
-	&& pip3 install --no-cache-dir redis==3.2 \
 	&& pip3 install --no-cache-dir "${AIRFLOW_MODULE}" \
+	&& pip3 install --no-cache-dir 'redis==3.2' \
 	&& cd /usr/lib/python3.7/site-packages/airflow/www_rbac \
 	&& npm install \
 	&& npm run build \
