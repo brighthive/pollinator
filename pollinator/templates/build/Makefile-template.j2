@@ -1,6 +1,7 @@
 
-BUILD_NUMBER ?= "1.0.0"
-ORG ?= "{{ environment.platform_name }}"
+AIRFLOW_BUILD_VERSION ?= "{{ environment.docker_build_version}}-{{ environment.docker_build_tag }}"
+AIRFLOW_IMAGE_NAME ?= "{{ environment.docker_image_name }}"
+BUILD_NUMBER ?= "1"
 
 # Set default for make
 .DEFAULT_GOAL := build
@@ -11,7 +12,8 @@ init:
 
 .PHONY: build
 build: init
-{% raw %}	ORG=${ORG} \
+{% raw %}	DOCKER_IMAGE=${AIRFLOW_IMAGE_NAME} \
+	BUILD_VERSION=${AIRFLOW_BUILD_VERSION} \
 	BUILD_NUMBER=${BUILD_NUMBER} \{% endraw %}
 	bin/build-airflow
 

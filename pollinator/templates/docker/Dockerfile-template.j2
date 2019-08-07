@@ -24,14 +24,6 @@ ARG AIRFLOW_SUBMODULES="{{environment.airflow_submodules|join(",")|replace("'", 
 ARG	BRIGHTHIVE_USER="{{ environment.platform_user }}" 
 ARG	BRIGHTHIVE_GROUP="{{ environment.platform_group }}"
 
-LABEL io.brighthive.docker.build_date=$BUILD_DATE \
-	io.brighthive.docker.name="brighthive_airflow" \
-	io.docker.build.version=$BUILD_NUMBER \
-	io.brighthive.docker.module="airflow" \
-	io.brighthive.docker.component="airflow" \
-	io.brighthive.docker.airflow.version=$AIRFLOW_VERSION 
-
-
 ENV AIRFLOW_REPOSITORY="https://github.com/apache/airflow"
 ENV AIRFLOW_MODULE="git+${AIRFLOW_REPOSITORY}@${AIRFLOW_VERSION}#egg=apache-airflow[${AIRFLOW_SUBMODULES}]"
 ENV AIRFLOW_HOME="{{ environment.airflow_home }}"

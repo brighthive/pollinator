@@ -65,6 +65,22 @@ class PollinatorEnvironment(object):
         return self.get_platform_property('include_aws')
     
     @property
+    def docker_build_version(self):
+        return "1.0.0"
+
+    @property
+    def docker_build_tag(self):
+        return "latest"
+    
+    @property
+    def docker_image_name(self):
+        return "brighthive/{}_airflow".format(self.platform_name)
+    
+    @property
+    def docker_image_full_name(self):
+        return "{}:{}-{}".format(self.docker_image_name, self.docker_build_version ,self.docker_build_tag)
+
+    @property
     def aws_access_key_id(self):
         return self.get_aws_property('access_key_id')
 
