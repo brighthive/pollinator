@@ -20,7 +20,7 @@ make install
 
 ### How To Use
 
-#### Create a configuration file
+#### Create a configuration file 
 ```
 {
     "platform":{
@@ -28,7 +28,7 @@ make install
         "executor": "celery",
         "include_hive": true,
         "include_aws": true,
-        "include_examples": true,
+        "include_examples": true
     },
     "aws": {
         "access_key_id": "<ACCESS_KEY_ID>",
@@ -46,13 +46,14 @@ make install
             "smtp_host": "smtp.google.org",
             "smtp_port": 587
         },
-        "users":[
+        "authentication": false,
+        "accounts":[
             {
                 "firstname": "<FIRST_NAME>",
                 "lastname": "<LAST_NAME>",
-                "email_address": "<USER_EMAIL>",
+                "email": "<USER_EMAIL>",
                 "password": "<LOGIN_PASSWORD>",
-                "role" : "admin"
+                "username": "<USERNAME>"
             }
         ]
     }
