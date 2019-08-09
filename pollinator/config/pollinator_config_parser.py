@@ -3,7 +3,7 @@ import jsonschema
 import jsonmerge
 from pprint import pprint
 from .config import Config
-from pollinator.exceptions import PollinatorPlatformConfigError, PollinatorPlatformConfigErrorList
+from pollinator.exceptions import PollinatorPlatformConfigError, PollinatorPlatformConfigErrorList, PollinatorPlatformConfigAWSError
 from collections import abc
 from functools import reduce
 import operator
@@ -135,13 +135,16 @@ class PollinatorConfigParser():
         # Check for config settings
         include_aws = self.config['platform']['include_aws']
         if include_aws and 'aws' not in self.config:
-            print('No aws credentials supplied!')
+            print('No aws credentials supplied looking for credentials on local system!')
             self.set_aws_credentials()
     
     def set_aws_credentials(self):
         config = Config()
-        aws_credentials = config.get_aws_credentials()
-        self.config['aws'] = aws_credentials
+        try:
+            aws_credentials = config.get_aws_credentials()
+            self.config['aws'] = aws_credentials
+        except:
+            raise PollinatorPlatformConfigAWSError('No AWS Credentials Found! Please provide credentials')
         
     def __validate(self):
         validation = jsonschema.Draft7Validator(self.__schema)

@@ -1,8 +1,8 @@
 requirements:
-	pipenv lock --requirements > requirements.txt
+	( pipenv lock --requirements > requirements.txt )
 
 install: requirements
-	pip install -e .
+	pip install -e . --user
 
 reinstall: requirements
 	pip uninstall pollinator
