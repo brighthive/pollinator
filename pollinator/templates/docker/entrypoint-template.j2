@@ -28,10 +28,10 @@ set -e
 : "${AIRFLOW__WEBSERVER__WEB_SERVER_PORT:=${WEB_SERVER_PORT:="{{ environment.airflow_webserver_port}}"}}"
 : "${AIRFLOW__WEBSERVER__RBAC:=${RBAC:="{{environment.include_authorized_users}}"}}"
 
-export AIRFLOW__CORE__EXECUTOR /
-  AIRFLOW__CORE__FERNET_KEY /
-  AIRFLOW__WEBSERVER__WEB_SERVER_PORT /
-  AIRFLOW__WEBSERVER__RBAC/
+export AIRFLOW__CORE__EXECUTOR \
+  AIRFLOW__CORE__FERNET_KEY \
+  AIRFLOW__WEBSERVER__WEB_SERVER_PORT \
+  AIRFLOW__WEBSERVER__RBAC \
 
 # Defaults for Redis
 : "${REDIS_HOST:="redis"}"
@@ -83,7 +83,7 @@ initialize_airflow() {
 {% if environment.include_aws %}
 
 # Setup AWS
-if [[ ! -z "$AWS_ACCESS_KEY_ID" && ! -z "$AWS_SECRET_ACCESS_KEY" ]]
+if [[ ! -z "$AWS_ACCESS_KEY_ID" && ! -z "$AWS_SECRET_ACCESS_KEY" ]]; then
   : "${AWS_REGION:="{{ environment.aws_region }}"}"
   : "${AWS_OUTPUT:="{{ environment.aws_output }}"}"
   aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
@@ -94,8 +94,7 @@ fi
 {% endif %}
 
 # Load DAGs exemples (default: Yes)
-if [[ -z "$AIRFLOW__CORE__LOAD_EXAMPLES" && "${LOAD_EX:=n}" == n ]]
-then
+if [[ -z "$AIRFLOW__CORE__LOAD_EXAMPLES" && "${LOAD_EX:=n}" == n ]]; then
   AIRFLOW__CORE__LOAD_EXAMPLES=False
   export AIRFLOW__CORE__LOAD_EXAMPLES
 fi
@@ -123,13 +122,12 @@ if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]; then
 fi
 
 # Setup Airflow UI Security
-if [ "$AIRFLOW__WEBSERVER__RBAC" = "True" ];
-  then
-  AIRFLOW__WEBSERVER__EXPOSE_CONFIG="False"
-  AIRFLOW__WEBSERVER__FILTER_BY_OWNER="True"
+if [ "$AIRFLOW__WEBSERVER__RBAC" = "True" ]; then
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG="False"
+    AIRFLOW__WEBSERVER__FILTER_BY_OWNER="True"
   else
-  AIRFLOW__WEBSERVER__EXPOSE_CONFIG="True"
-  AIRFLOW__WEBSERVER__FILTER_BY_OWNER="False"
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG="True"
+    AIRFLOW__WEBSERVER__FILTER_BY_OWNER="False"
 fi
 export AIRFLOW__WEBSERVER__EXPOSE_CONFIG
 export AIRFLOW__WEBSERVER__FILTER_BY_OWNER

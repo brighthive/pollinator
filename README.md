@@ -11,16 +11,34 @@ Pollinator provides an open sourced python configuration framework for builing c
 Pollinator is an easy, simple, and intuitive airflow based data engineering platform generator for rapid data engineering infrastructure needs. Pollinator simplifies the process of configuring Airflow for data pipeline infrastructure needs by providing a simplified configuration file. 
 
 
-### How To Install
+### Installation
 
+Pollinator requires the following:
+ * Python >= 3.7.3
+ * Pip package manager
+
+To check to see if you have the proper requirements, try to run:
 ```
-git clone ...
+python --version
+pip --verion
+```
+
+To install pollinator run:
+```
+git clone https://github.com/brighthive/pollinator.git
+cd pollinator
 make install
 ```
 
-### How To Use
+### How To Use Pollinator
 
-#### Create a configuration file 
+1. Create project directory and cd into it
+```
+mkdir data_project
+cd data_project
+```
+2. Create and save the pollinator configuration file as  **config.json** using the following config template below in the project directory.
+
 ```
 {
     "platform":{
@@ -59,8 +77,21 @@ make install
     }
 }
 ```
-
+3. Once the config.json file has been created run the following command to initialize your data infrastructure project directory.
 ```
-cd path/to/project/dir 
 pollinator
+```
+
+4. Now that you have successfully initalized, you should now be able to start your infrastructure using the following:
+```
+make build
+make run
+```
+
+5. To check if your infrastructure is ready, you should visit "localhost:8080".
+   
+6. To stop your infrastructure, run the following command:
+```
+CTRL+C
+make stop
 ```

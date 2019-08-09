@@ -9,7 +9,7 @@ services:
   redis:
     image: 'redis:5.0.5'
     ports:
-      - 6379:6379
+      - "6379:6379"
   
   postgres:
     image: postgres:11.2
@@ -30,10 +30,10 @@ services:
     depends_on:
         - postgres
     ports:
-      - 8888:8888
-      - 10000:10000
-      - 7180:7180
-      - 8020:8020
+      - "8888:8888"
+      - "10000:10000"
+      - "7180:7180"
+      - "8020:8020"
     hostname: quickstart.cloudera
     privileged: true
     tty: true
@@ -78,7 +78,7 @@ services:
     env_file:
       - .env
     ports:
-      - 5555:5555
+      - "5555:5555"
 
   worker:
     image: {{ environment.docker_image_full_name }}
