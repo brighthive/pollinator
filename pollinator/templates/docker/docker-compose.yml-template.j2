@@ -51,8 +51,8 @@ services:
     ports:
       - "{{ environment.airflow_webserver_internal_port }}:{{ environment.airflow_webserver_external_port}}"
     volumes:
-      - ./airflow/dags:{{ environment.airflow_dags_folder }}:ro
-      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:ro
+      - ./airflow/dags:{{ environment.airflow_dags_folder }}:rw
+      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:rw
       - airflow_logs:{{ environment.airflow_logs_folder }}
       
 {% if environment.use_celery_executor %}
@@ -65,8 +65,8 @@ services:
     env_file:
       - .env
     volumes:
-      - ./airflow/dags:{{ environment.airflow_dags_folder }}:ro
-      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:ro
+      - ./airflow/dags:{{ environment.airflow_dags_folder }}:rw
+      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:rw
       - airflow_logs:{{ environment.airflow_logs_folder }}
 
   flower:
@@ -89,7 +89,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./airflow/dags:{{ environment.airflow_dags_folder }}:ro
-      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:ro
+      - ./airflow/dags:{{ environment.airflow_dags_folder }}:rw
+      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:rw
       - airflow_logs:{{ environment.airflow_logs_folder }}
 {% endif %}

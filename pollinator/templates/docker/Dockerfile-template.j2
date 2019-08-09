@@ -18,7 +18,7 @@ LABEL maintainer="BrightHive <amanda@brighthive.io>"
 
 ARG	BUILD_NUMBER=-1
 ARG ORG="{{ environment.platform_name }}" 
-ARG AIRFLOW_VERSION="1.10.3" 
+ARG AIRFLOW_VERSION="1.10.4" 
 ARG AIRFLOW_SUBMODULES="{{environment.airflow_submodules|join(",")|replace("'", "")}}" 
 
 ENV AIRFLOW_REPOSITORY="https://github.com/apache/airflow"
@@ -26,7 +26,7 @@ ENV AIRFLOW_MODULE="git+${AIRFLOW_REPOSITORY}@${AIRFLOW_VERSION}#egg=apache-airf
 ENV AIRFLOW_HOME="{{ environment.airflow_home }}"
 ENV PYMSSQL_BUILD_WITH_BUNDLED_FREETDS=1
 ENV PYTHONPATH=${PYTHONPATH:+${PYTHONPATH}:}${AIRFLOW_HOME}
-ENV AIRFLOW_GPL_UNIDECODE="True"
+ENV AIRFLOW_GPL_UNIDECODE="yes"
 
 # Define en_US.
 ENV LANGUAGE en_US.UTF-8
@@ -79,7 +79,9 @@ RUN apk update \
 	&& pip3 install --no-cache-dir cython \
 	&& pip3 install --no-cache-dir numpy \
 	&& pip3 install --no-cache-dir Flask==1.0.4 \
-	&& pip3 install --no-cache-dir celery \
+	{% if environment.use_celery_executor -%}
+	&& pip3 install --no-cache-dir flower \
+	{% endif -%}
 	&& pip3 install --no-cache-dir flask_bcrypt \
 	&& pip3 install --no-cache-dir psycopg2-binary \
 	{% if environment.include_aws -%}
@@ -122,7 +124,7 @@ RUN pip install -r requirements.txt
 {% endif -%}
 
 # Add airflow configuration file 
-COPY airflow/airflow.cfg airflow.cfg
+#COPY airflow/airflow.cfg airflow.cfg
 
 # Expose all airflow ports
 EXPOSE {{ environment.airflow_webserver_internal_port }} 5555 8793
