@@ -7,7 +7,7 @@ volumes:
 
 services:
   redis:
-    image: 'redis:5.0.5'
+    image: redis:3.2.7
     ports:
       - "6379:6379"
   
@@ -15,7 +15,7 @@ services:
     image: postgres:11.2
     restart: unless-stopped
     ports:
-      - {{ environment.postgres_exposed_port }}:{{ environment.postgres_port}}
+      - "{{ environment.postgres_exposed_port }}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:

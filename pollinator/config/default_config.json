@@ -11,9 +11,7 @@
         "user": "airflow",
         "password": "airflow",
         "db": "airflow",
-        "port": 5432,
-        "internal_port": 5432,
-        "external_port": 5432
+        "port": 5432
     },
     "docker": {
         "image_name": "brighthive_airflow_docker",
