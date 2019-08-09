@@ -19,7 +19,7 @@ class PollinatorDocumentBuilder(object):
             raise PollinatorDocumentBuilderError("templates output path is a not a diretory ")
 
         # Create a Jinja Env 
-        self.template_env = Environment( loader = FileSystemLoader(self.templates_dir) )
+        self.template_env = Environment( loader = FileSystemLoader(self.templates_dir) , trim_blocks=True)
 
     def build(self):
         for subdir, dirs, files in os.walk(self.templates_dir):

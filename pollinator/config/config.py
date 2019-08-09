@@ -79,8 +79,7 @@ class Config:
         PLATFORM_AIRLFOW_DAGS_PATH,
         PLATFORM_AIRLFOW_LOGS_PATH,
         PLATFORM_AIRLFOW_PLUGINS_PATH,
-        PLATFORM_BIN_PATH,
-        PLATFORM_DOCKER_SUB_PATH,
+        PLATFORM_BIN_PATH    
     ]
 
     def __init__(self):

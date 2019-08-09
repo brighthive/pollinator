@@ -7,7 +7,7 @@ function build_image()  {
     image_version="${BUILD_VERSION}"
 
     if [ -f "${dockerfile}" ]; then
-        docker build ${build_opts} -t "${image_name}:${image_version}" .  --no-cache || exit 1
+        docker build ${build_opts} -t "${image_name}:${image_version}" . || exit 1
     else
         echo "No Dockerfile found" && exit 1
     fi

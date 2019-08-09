@@ -10,6 +10,8 @@
     "postgres" : {
         "user": "airflow",
         "password": "airflow",
+        "db": "airflow",
+        "port": 5432,
         "internal_port": 5432,
         "external_port": 5432
     },
@@ -23,9 +25,10 @@
     "airflow": {
         "user": "admin",
         "webserver_port": 8080,
-        "users":[
+        "authentication": false,
+        "accounts":[
             {
-                "role": "admin"
+                "role": "Admin"
             }
         ]
     }

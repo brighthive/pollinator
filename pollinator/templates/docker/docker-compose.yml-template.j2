@@ -7,25 +7,26 @@ volumes:
 
 services:
   redis:
-    image: 'redis:3.2.7'
+    image: 'redis:5.0.5'
+    ports:
+      - 6379:6379
   
   postgres:
-    image: postgres:10.1-alpine
+    image: postgres:11.2
     restart: unless-stopped
     ports:
-      - "{{ environment.postgres_exposed_port }}:{{ environment.postgres_port}}"
+      - {{ environment.postgres_exposed_port }}:{{ environment.postgres_port}}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER={{ environment.postgres_user }}
       - POSTGRES_PASSWORD={{ environment.postgres_password }}
-      - POSTGRES_DB=airflow
-
+      - POSTGRES_DB={{ environment.postgres_db}}
   {% if environment.include_hive %}
+
   hive:
     image: cloudera/quickstart:latest
     container_name: hive-docker
-    restart: always
     depends_on:
         - postgres
     ports:
@@ -39,44 +40,30 @@ services:
     command: /usr/bin/docker-quickstart
   {% endif %}
 
-  scheduler:
-    image: {{ environment.docker_image_full_name }}
-    command: ["airflow", "scheduler"]
-    restart: unless-stopped
-    user: "{{ environment.platform_user }}"
-    depends_on:
-      - postgres
-    environment:
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN={{ environment.airflow_alchemy_conn_url }}
-      - AIRFLOW__CORE__EXECUTOR={{ environment.platform_executor }}
-      - FERNET_KEY={{ environment.fernet_key }}
-      - POSTGRES_USER={{ environment.postgres_user }}
-      - POSTGRES_PASSWORD={{ environment.postgres_port }}
-      - POSTGRES_DB=airflow
-      -  AIRFLOW__CORE__LOAD_EXAMPLES={{ environment.include_examples }}
-
-    volumes:
-      - ./airflow/dags:{{ environment.airflow_dags_folder }}:ro
-      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:ro
-      - airflow_logs:{{ environment.airflow_logs_folder }}
-
   webserver:
     image: {{ environment.docker_image_full_name }}
     command: webserver
     restart: unless-stopped
-    user: "{{ environment.platform_user }}"
     depends_on:
       - postgres
-    environment:
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN={{ environment.airflow_alchemy_conn_url }}
-      - AIRFLOW__CORE__EXECUTOR={{ environment.platform_executor }}
-      - FERNET_KEY={{ environment.fernet_key }}
-      - POSTGRES_USER={{ environment.postgres_user }}
-      - POSTGRES_PASSWORD={{ environment.postgres_port }}
-      - POSTGRES_DB=airflow
-      -  AIRFLOW__CORE__LOAD_EXAMPLES={{ environment.include_examples }}
+    env_file:
+      - .env
     ports:
-      - "{{ environment.airflow_webserver_port }}:{{ environment.airflow_webserver_port}}"
+      - "{{ environment.airflow_webserver_internal_port }}:{{ environment.airflow_webserver_external_port}}"
+    volumes:
+      - ./airflow/dags:{{ environment.airflow_dags_folder }}:ro
+      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:ro
+      - airflow_logs:{{ environment.airflow_logs_folder }}
+      
+{% if environment.use_celery_executor %}
+  scheduler:
+    image: {{ environment.docker_image_full_name }}
+    command: scheduler
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - .env
     volumes:
       - ./airflow/dags:{{ environment.airflow_dags_folder }}:ro
       - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:ro
@@ -84,18 +71,25 @@ services:
 
   flower:
     image: {{ environment.docker_image_full_name }}
-    restart: always
+    restart: unless-stopped
+    command: flower
     depends_on:
       - redis
-    environment:
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN={{ environment.airflow_alchemy_conn_url }}
-      - AIRFLOW__CORE__EXECUTOR={{ environment.platform_executor }}
-      - POSTGRES_USER={{ environment.postgres_user }}
-      - POSTGRES_PASSWORD={{ environment.postgres_port }}
-      - POSTGRES_DB=airflow
-      - FERNET_KEY={{ environment.fernet_key }}
-      -  AIRFLOW__CORE__LOAD_EXAMPLES={{ environment.include_examples }}
-
+    env_file:
+      - .env
     ports:
-      - "5555:5555"
-    command: flower
+      - 5555:5555
+
+  worker:
+    image: {{ environment.docker_image_full_name }}
+    restart: unless-stopped
+    command: worker
+    depends_on:
+      - scheduler
+    env_file:
+      - .env
+    volumes:
+      - ./airflow/dags:{{ environment.airflow_dags_folder }}:ro
+      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:ro
+      - airflow_logs:{{ environment.airflow_logs_folder }}
+{% endif %}

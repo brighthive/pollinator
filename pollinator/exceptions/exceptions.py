@@ -20,6 +20,17 @@ class PollinatorPlatformBuildError(PollinatorPlatformError):
 class PollinatorPlatformValidationError(PollinatorPlatformError):
     pass
 
+class PollinatorPlatformConfigErrorList(PollinatorPlatformError):
+    def __init__(self, error_list):
+        self.type = 'config'
+        self.error_list = error_list
+        message =  self.format_message()
+        super().__init__(message)
+    
+    def format_message(self):
+        message = 'This following parameters are invalid: {}'.format(self.error_list)
+        return message
+
 class PollinatorPlatformConfigError(PollinatorError):
     def __init__(self, schema_queue, schema_message):
         self.type = 'config'
@@ -38,8 +49,8 @@ class PollinatorPlatformConfigError(PollinatorError):
             param_path.append(schema_path_queue.popleft())
         
         param_path.append(invalid_config_param)
-        if len(param_path) != 1:
-            param_path_str = '.'.join(param_path)
+        if len(param_path) > 1:
+            param_path_str = '.'.join(str(param) for param in param_path)
         else:
             param_path_str = ''.join(param_path)
 

@@ -101,7 +101,7 @@ load_examples = {{ environment.include_examples }}
 plugins_folder = {{ environment.airflow_plugins_folder}}
 
 # Secret key to save connection passwords in the db
-fernet_key = $FERNET_KEY
+fernet_key = {{ environment.fernet_key }}
 
 # Whether to disable pickling dags
 donot_pickle = False
@@ -179,7 +179,7 @@ password =
 [operators]
 # The default owner assigned to each new operator, unless
 # provided explicitly or passed via `default_args`
-default_owner = {{ environment.user}}
+default_owner = {{ environment.user }}
 default_cpus = 1
 default_ram = 512
 default_disk = 512
@@ -194,7 +194,6 @@ default_hive_mapred_queue = Airflow HiveOperator task for {hostname}.{dag_id}.{t
 # cname you are using. This is used in automated emails that
 # airflow sends to point links to the right web server
 base_url = http://localhost:{{ environment.airflow_webserver_port }}
-
 # The ip specified when starting the web server
 web_server_host = 0.0.0.0
 
@@ -367,7 +366,7 @@ broker_url = redis://redis:6379/1
 # This status is used by the scheduler to update the state of the task
 # The use of a database is highly recommended
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#task-result-backend-settings
-result_backend = db+postgresql://airflow:airflow@postgres:{{ airflow_postgres_port }}/airflow
+result_backend = {{ environment.airflow_celery_conn_url }}
 
 # Celery Flower is a sweet UI for Celery. Airflow has a shortcut to start
 # it `airflow flower`. This defines the IP that Celery Flower runs on

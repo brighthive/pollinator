@@ -3,12 +3,15 @@
 TRY_LOOP="20"
 set -e
 
-{% if environment.include_aws %}
-# Get input params for AWS 
-: "${AWS_ACCESS_KEY_ID:="{{ environment.aws_access_key_id }}"}"
-: "${AWS_SECRET_ACCESS_KEY:="{{ environment.aws_secret_access_key }}"}"
-: "${AWS_REGION:="{{ environment.aws_region }}"}"
-: "${AWS_OUTPUT :="{{ environment.aws_output }}"}"
+## Defaults
+
+{% if environment.include_hive %}
+# Hive Defaults
+: "${HIVE_HOST:="hive"}"
+: "${HIVE_PORT:="10000"}"
+: "${HIVE_USER:="cloudera"}"
+: "${HIVE_PASSWORD:="cloudera"}"
+: "${HIVE_SCHEMA:="default"}"
 {% endif %}
 
 # Defaults for Airflow Postgres DB
@@ -16,39 +19,26 @@ set -e
 : "${POSTGRES_PORT:="{{ environment.postgres_port }}"}"
 : "${POSTGRES_USER:="{{ environment.postgres_user}}"}"
 : "${POSTGRES_PASSWORD:="{{ environment.postgres_password}}"}"
-: "${POSTGRES_DB:="airflow"}"
+: "${POSTGRES_DB:="{{ environment.postgres_db }}"}"
 
+
+# Defaults for Airflow Configuration
+: "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
+: "${AIRFLOW__CORE__EXECUTOR:=${EXECUTOR:="{{ environment.platform_executor }}"}}"
+: "${AIRFLOW__WEBSERVER__WEB_SERVER_PORT:=${WEB_SERVER_PORT:="{{ environment.airflow_webserver_port}}"}}"
+: "${AIRFLOW__WEBSERVER__RBAC:=${RBAC:="{{environment.include_authorized_users}}"}}"
+
+export AIRFLOW__CORE__EXECUTOR /
+  AIRFLOW__CORE__FERNET_KEY /
+  AIRFLOW__WEBSERVER__WEB_SERVER_PORT /
+  AIRFLOW__WEBSERVER__RBAC/
 
 # Defaults for Redis
 : "${REDIS_HOST:="redis"}"
 : "${REDIS_PORT:="6379"}"
 : "${REDIS_PASSWORD:=""}"
 
-if [ -n "$REDIS_PASSWORD" ]; then
-    REDIS_PREFIX=:${REDIS_PASSWORD}@
-else
-    REDIS_PREFIX=
-fi
-
-# Defaults and back-compat
-: "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
-: "${AIRFLOW__CORE__EXECUTOR:={{ environment.platform_executor }}"
-
-{% if environment.include_aws %}
-# Set up AWS using credentials
-aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-aws configure set default.region $AWS_REGION
-aws configure set default.output $AWS_OUTPUT
-{% endif %}
-
-# Load DAGs exemples (default: Yes)
-if [[ -z "$AIRFLOW__CORE__LOAD_EXAMPLES" && "${LOAD_EX:=n}" == n ]]
-then
-  AIRFLOW__CORE__LOAD_EXAMPLES=False
-fi
-
-
+## Functions
 wait_for_port() {
   local name="$1" host="$2" port="$3"
   local j=0
@@ -63,45 +53,92 @@ wait_for_port() {
   done
 }
 
-if [ "$AIRFLOW__CORE__EXECUTOR" != "SequentialExecutor" ]; then
-  AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
-  AIRFLOW__CELERY__RESULT_BACKEND="db+postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
-  wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
-fi
-
-if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]; then
-  AIRFLOW__CELERY__BROKER_URL="redis://$REDIS_PREFIX$REDIS_HOST:$REDIS_PORT/1"
-  wait_for_port "Redis" "$REDIS_HOST" "$REDIS_PORT"
-fi
-
-export \
-  AIRFLOW__CELERY__BROKER_URL \
-  AIRFLOW__CELERY__CELERY_RESULT_BACKEND \
-  AIRFLOW__CORE__EXECUTOR \
-  AIRFLOW__CORE__FERNET_KEY \
-  AIRFLOW__CORE__LOAD_EXAMPLES \
-  AIRFLOW__CORE__SQL_ALCHEMY_CONN \
-{% if environment.include_aws %}  
-  AWS_ACCESS_KEY_ID \
-  AWS_SECRET_ACCESS_KEY \
-  AWS_REGION \
-  AWS_OUTPUT 
+{% if environment.include_hive %}
+add_hive_connection(){
+  airflow connections -a --conn_id "hive_conn" --conn_type "hive_cli" \
+  --conn_host "$HIVE_HOST" --conn_login "$HIVE_USER" --conn_password "$HIVE_PASSWORD" --conn_schema "$HIVE_SCHEMA" \
+  --conn_extra '{"hive_cli_params": "", "auth": "none", "use_beeline": "true"}'
+}
 {% endif %}
 
 {% if environment.include_authorized_users %}
 add_airflow_users() {
   {% for user in environment.user_accounts %}
-  airflow create_user -r {{user.role}} -f {{user.firstname}} -l {{user.lastname}} -e {{user.email}} -p {{user.password}}
+  airflow create_user -r "{{user.role}}" -f "{{user.firstname}}" -l "{{user.lastname}}" -e "{{user.email}}" -p "{{user.password}}" -u "{{user.username}}"
   {% endfor %}
 }
 {% endif %}
+
+initialize_airflow() {
+{% if environment.include_authorized_users %}
+  add_airflow_users
+{% endif %}
+{% if environment.include_hive %}
+  add_hive_connection
+{% endif %}
+  echo "Airflow intialization completed..."
+}
+
+## MAIN 
+{% if environment.include_aws %}
+
+# Setup AWS
+if [[ ! -z "$AWS_ACCESS_KEY_ID" && ! -z "$AWS_SECRET_ACCESS_KEY" ]]
+  : "${AWS_REGION:="{{ environment.aws_region }}"}"
+  : "${AWS_OUTPUT:="{{ environment.aws_output }}"}"
+  aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+  aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
+  aws configure set default.region "$AWS_REGION"
+  aws configure set default.output "$AWS_OUTPUT"
+fi
+{% endif %}
+
+# Load DAGs exemples (default: Yes)
+if [[ -z "$AIRFLOW__CORE__LOAD_EXAMPLES" && "${LOAD_EX:=n}" == n ]]
+then
+  AIRFLOW__CORE__LOAD_EXAMPLES=False
+  export AIRFLOW__CORE__LOAD_EXAMPLES
+fi
+
+# Setup Executor Defaults
+if [ "$AIRFLOW__CORE__EXECUTOR" != "SequentialExecutor" ]; then
+  AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
+  AIRFLOW__CELERY__RESULT_BACKEND="db+postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:$POSTGRES_PORT/$POSTGRES_DB"
+  export AIRFLOW__CELERY_RESULT_BACKEND \
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN
+  wait_for_port "Postgres" "$POSTGRES_HOST" "$POSTGRES_PORT"
+fi
+
+# Setup CeleryExecutor
+if [ "$AIRFLOW__CORE__EXECUTOR" = "CeleryExecutor" ]; then
+  # Setup Redis Prefix
+  if [ -n "$REDIS_PASSWORD" ]; then
+      REDIS_PREFIX=:${REDIS_PASSWORD}@
+  else
+      REDIS_PREFIX=
+  fi
+  AIRFLOW__CELERY__BROKER_URL="redis://$REDIS_PREFIX$REDIS_HOST:$REDIS_PORT/1"
+  export AIRFLOW__CELERY__BROKER_URL
+  wait_for_port "Redis" "$REDIS_HOST" "$REDIS_PORT"
+fi
+
+# Setup Airflow UI Security
+if [ "$AIRFLOW__WEBSERVER__RBAC" = "True" ];
+  then
+  AIRFLOW__WEBSERVER__EXPOSE_CONFIG="False"
+  AIRFLOW__WEBSERVER__FILTER_BY_OWNER="True"
+  else
+  AIRFLOW__WEBSERVER__EXPOSE_CONFIG="True"
+  AIRFLOW__WEBSERVER__FILTER_BY_OWNER="False"
+fi
+export AIRFLOW__WEBSERVER__EXPOSE_CONFIG
+export AIRFLOW__WEBSERVER__FILTER_BY_OWNER
+
 case "$1" in
   webserver)
     nohup airflow initdb &>/dev/null  &
-    {% if environment.include_authorized_users %}
     sleep 1m
-    add_airflow_users
-    {%  endif  %}
+    initialize_airflow
     if [ "$AIRFLOW__CORE__EXECUTOR" = "LocalExecutor" ]; then
       # With the "Local" executor it should all run in one container.
       airflow scheduler &

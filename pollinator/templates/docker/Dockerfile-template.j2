@@ -16,13 +16,10 @@
 FROM alpine:3.10
 LABEL maintainer="BrightHive <amanda@brighthive.io>"
 
-ARG BUILD_DATE="{{ environment.default_build_date }}" 
 ARG	BUILD_NUMBER=-1
 ARG ORG="{{ environment.platform_name }}" 
 ARG AIRFLOW_VERSION="1.10.3" 
 ARG AIRFLOW_SUBMODULES="{{environment.airflow_submodules|join(",")|replace("'", "")}}" 
-ARG	BRIGHTHIVE_USER="{{ environment.platform_user }}" 
-ARG	BRIGHTHIVE_GROUP="{{ environment.platform_group }}"
 
 ENV AIRFLOW_REPOSITORY="https://github.com/apache/airflow"
 ENV AIRFLOW_MODULE="git+${AIRFLOW_REPOSITORY}@${AIRFLOW_VERSION}#egg=apache-airflow[${AIRFLOW_SUBMODULES}]"
@@ -31,19 +28,12 @@ ENV PYMSSQL_BUILD_WITH_BUNDLED_FREETDS=1
 ENV PYTHONPATH=${PYTHONPATH:+${PYTHONPATH}:}${AIRFLOW_HOME}
 ENV AIRFLOW_GPL_UNIDECODE="True"
 
-ENV BRIGHTHIVE_USER=${BRIGHTHIVE_USER}
-ENV BRIGHTHIVE_GROUP=${BRIGHTHIVE_GROUP}
-
 # Define en_US.
 ENV LANGUAGE en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
 ENV LC_MESSAGES en_US.UTF-8
-
-RUN addgroup -S ${BRIGHTHIVE_GROUP} \
-	&& adduser -S -G ${BRIGHTHIVE_GROUP} ${BRIGHTHIVE_USER}
-
 
 # Install packages
 RUN apk update \
@@ -92,9 +82,9 @@ RUN apk update \
 	&& pip3 install --no-cache-dir celery \
 	&& pip3 install --no-cache-dir flask_bcrypt \
 	&& pip3 install --no-cache-dir psycopg2-binary \
-	{% if environment.include_aws %}
+	{% if environment.include_aws -%}
 	&& pip3 install awscli \
-	{% endif %}
+	{% endif -%}
 	&& pip3 install --no-cache-dir "${AIRFLOW_MODULE}" \
 	&& pip3 install --no-cache-dir 'redis==3.2' \
 	&& cd /usr/lib/python3.7/site-packages/airflow/www_rbac \
@@ -115,9 +105,6 @@ RUN chmod +x entrypoint
 # Copy cron scripts
 COPY clean-airflow-logs /etc/periodic/15min/clean-airflow-logs
 
-# Ensure our user has ownership to AIRFLOW_HOME
-RUN chown -R ${BRIGHTHIVE_USER}:${BRIGHTHIVE_GROUP} ${AIRFLOW_HOME}
-
 # Switch to AIRFLOW_HOME
 WORKDIR ${AIRFLOW_HOME}
 
@@ -125,22 +112,20 @@ WORKDIR ${AIRFLOW_HOME}
 # Install Pipfile
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
-
 RUN pipenv install --system
-{% endif %}
+{% endif -%}
 
 {% if environment.include_requirements %}
 # Install pipfile or any other files
 COPY requirements.txt requirements.txt
-
-pip install -r requirements.txt
-{% endif %}
+RUN pip install -r requirements.txt
+{% endif -%}
 
 # Add airflow configuration file 
 COPY airflow/airflow.cfg airflow.cfg
 
 # Expose all airflow ports
-EXPOSE {{ environment.airflow_webserver_port }} 5555 8793
+EXPOSE {{ environment.airflow_webserver_internal_port }} 5555 8793
 
 # Run airflow with minimal init
 ENTRYPOINT ["tini", "--", "/entrypoint"]

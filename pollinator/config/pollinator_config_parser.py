@@ -3,7 +3,7 @@ import jsonschema
 import jsonmerge
 from pprint import pprint
 from .config import Config
-from pollinator.exceptions import PollinatorPlatformConfigError
+from pollinator.exceptions import PollinatorPlatformConfigError, PollinatorPlatformConfigErrorList
 from collections import abc
 from functools import reduce
 import operator
@@ -36,6 +36,7 @@ POSTGRES_SCHEMA = {
     "properties": {
         "user": {"type": "string"},
         "password": {"type": "string"},
+        "db": {"type": "string"},
         "internal_port": {"type": "number"},
         "external_port": {"type": "number"}
     }
@@ -55,13 +56,14 @@ DOCKER_SCHEMA = {
 AIRFLOW_USERS_SCHEMA = {
     "type": "object",
     "properties": {
+        "username": {"type": "string"},
         "firstname": {"type": "string"},
         "lastname": {"type": "string"},
-        "email_address": {"type": "string"},
+        "email": {"type": "string"},
         "password": {"type": "string"},
-        "role": {"type": "string", "enum": ["admin", "user"]}
+        "role": {"type": "string", "enum": ["Admin", "User", "Op", "Viewer", "Public"]}
     },
-    "required": ["firstname", "lastname", "email_address", "password", "role"]
+    "required": ["firstname", "lastname", "email", "password", "role", "username"]
 }
 
 AIRFLOW_SCHEMA = {
@@ -69,6 +71,9 @@ AIRFLOW_SCHEMA = {
     "properties": {
         "user": {"type": "string"},
         "webserver_port": {"type": "number"},
+        "webserver_internal_port": {"type": "number"},
+        "webserver_external_port": {"type": "number"},
+        "authentication": {"type": "boolean"},
         "email": {
             "type": "object",
             "properties": {
@@ -106,6 +111,7 @@ class PollinatorConfigParser():
         self.locale = None
         self.__schema = SCHEMA
         self.is_validated = False
+        self.contain_errors = False
         self.validation_errors = []
         self.invalid_params_objs = []
         self.default_config_file = Config.PLATFORM_DEFAULT_CONFIG_PATH
@@ -143,9 +149,12 @@ class PollinatorConfigParser():
             param = error.message.split("'")[1]
             hiearchy = list(error.relative_path)
             hiearchy.append(param)
+            self.contain_errors =  True
             self.invalid_params_objs.append({param : hiearchy})
-            self.validation_errors.append(PollinatorPlatformConfigError(error.relative_path, error.message))
+            self.validation_errors.append(PollinatorPlatformConfigError(error.relative_path, error.message).message)
         self.is_validated = True
+        if self.errors:
+            raise PollinatorPlatformConfigErrorList(self.validation_errors)
 
     @property
     def invalid_params(self):

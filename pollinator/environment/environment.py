@@ -53,6 +53,10 @@ class PollinatorEnvironment(object):
             return self.CELERY_EXECTOR
 
     @property
+    def use_celery_executor(self):
+        return self.platform_executor == self.CELERY_EXECTOR
+
+    @property
     def include_examples(self):
         return self.get_platform_property('include_examples')
     
@@ -163,19 +167,35 @@ class PollinatorEnvironment(object):
     
     @property
     def user_accounts(self):
-        return self.get_airflow_property('users')
+        return self.get_airflow_property('accounts')
     
     @property
     def airflow_webserver_port(self):
         return self.get_airflow_property("webserver_port")
 
     @property
+    def airflow_webserver_internal_port(self):
+        return self.get_airflow_property("webserver_internal_port") or self.airflow_webserver_port
+
+    @property
+    def airflow_webserver_external_port(self):
+        return self.get_airflow_property("webserver_external_port") or self.airflow_webserver_port
+
+    @property
+    def postgres_host(self):
+        return "postgres"
+
+    @property
     def postgres_port(self):
-        return self.get_postgres_property('internal_port')
+        return self.get_postgres_property('internal_port') or self.get_postgres_property('port')
     
     @property
+    def postgres_db(self):
+        return self.get_postgres_property('db')
+
+    @property
     def postgres_exposed_port(self):
-        return self.get_postgres_property("external_port")
+        return self.get_postgres_property("external_port") or self.get_postgres_property('port')
     
     @property
     def postgres_user(self):
@@ -187,8 +207,14 @@ class PollinatorEnvironment(object):
 
     @property
     def airflow_alchemy_conn_url(self):
-        return "postgresql+psycopg2://{}:{}@postgres:{}/airflow".format(
-            self.postgres_user, self.postgres_password, self.postgres_port
+        return "postgresql+psycopg2://{}:{}@{}:{}/{}".format(
+            self.postgres_user, self.postgres_password, self.postgres_host, self.postgres_port, self.postgres_db
+        )
+    
+    @property
+    def airflow_celery_conn_url(self):
+        return "db+postgresql://{}:{}@{}:{}/{}".format(
+            self.postgres_user, self.postgres_password, self.postgres_host, self.postgres_port, self.postgres_db
         )
     @property
     def docker_name(self):
@@ -224,4 +250,4 @@ class PollinatorEnvironment(object):
 
     @property
     def include_authorized_users(self):
-        return len(self.user_accounts) != 0
+        return len(self.user_accounts) != 0 and self.get_airflow_property("authentication") 

@@ -22,12 +22,14 @@
             "smtp_host": "smtp.google.org",
             "smtp_port": 587
         },
-        "users":[
+        "authentication": false,
+        "accounts":[
             {
                 "firstname": "<FIRST_NAME>",
                 "lastname": "<LAST_NAME>",
-                "email_address": "<USER_EMAIL>",
-                "password": "<LOGIN_PASSWORD>"
+                "email": "<USER_EMAIL>",
+                "password": "<LOGIN_PASSWORD>",
+                "username": "<USERNAME>"
             }
         ]
     }
