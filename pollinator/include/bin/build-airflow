@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+function build_image()  {
+    dockerfile="Dockerfile"
+    image_name="${DOCKER_IMAGE}"
+    image_build_opts="--build-arg BUILD_NUMBER=${BUILD_NUMBER}"
+    image_version="${BUILD_VERSION}"
+
+    if [ -f "${dockerfile}" ]; then
+        docker build ${build_opts} -t "${image_name}:${image_version}" . || exit 1
+    else
+        echo "No Dockerfile found" && exit 1
+    fi
+
+}
+build_image

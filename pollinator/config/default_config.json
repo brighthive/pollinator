@@ -1,0 +1,33 @@
+{
+    "platform":{
+        "name": "brighthive_airflow_docker",
+        "executor": "celery",
+        "include_hive": true,
+        "include_aws": true,
+        "include_examples": true,
+        "include_pollinator_dags": true
+    },
+    "postgres" : {
+        "user": "airflow",
+        "password": "airflow",
+        "db": "airflow",
+        "port": 5432
+    },
+    "docker": {
+        "image_name": "brighthive_airflow_docker",
+        "load_pipfile": true,
+        "load_requirements": true,
+        "airflow_home": "/usr/local/home",
+        "airflow_submodules": []
+    },
+    "airflow": {
+        "user": "admin",
+        "webserver_port": 8080,
+        "authentication": false,
+        "accounts":[
+            {
+                "role": "Admin"
+            }
+        ]
+    }
+}

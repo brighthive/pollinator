@@ -1,40 +1,97 @@
 # Pollinator
-An airflow infrastructure project generation tool.
+Pollinator is a tool that rapidly generates a containerized Apache Airflow data pipeline infrastructure.
 
 ## Airflow Data Platform Generation Tool 
-
-Here at BrightHive we embrace the constant need to spin up data pipeline infrastructure for our clients with speed and security. Recently, we adopted Airflow into our infrastructure. Through our trial and errors, along with a gigantic amount of research, we found a few ways to configure airflow to fit our varying client needs. With this insight, we decided to make our lives easier, and yours, by automating this process and creating a generalized and simple tool that can create an Airflow platform to build etl pipelines using DAG's, along with users and permissions.
-
-
 
 Pollinator provides an open sourced python configuration framework for builing customized airflow platform for data engineering infrastructure. This is useful when:
  * You need to create multiple airflow platform projects on the fly
  * Have the need to set up user permission management
  * Want to deploy a new airflow platform but without the headache of parsing through tons of Airflow documentation.
 
-Pollinator is a easy, simple, and intuitive airflow based data engineering platform generator for rapid data engineering infrastructure needs.
-
-Key Features:
-
-- Configuration-Based: 
-
-- Flexible:
-
-- Direct:
-
-- Deployable:
+Pollinator is an easy, simple, and intuitive airflow based data engineering platform generator for rapid data engineering infrastructure needs. Pollinator simplifies the process of configuring Airflow for data pipeline infrastructure needs by providing a simplified configuration file. 
 
 
-### How To Install
+### Installation
 
+Pollinator requires the following:
+ * Python >= 3.7.3
+ * Pip package manager
+
+To check to see if you have the proper requirements, try to run:
 ```
-git clone ...
+python --version
+pip --verion
+```
+
+To install pollinator run:
+```
+git clone https://github.com/brighthive/pollinator.git
+cd pollinator
 make install
 ```
 
-### How To Use
+### How To Use Pollinator
+
+1. Create project directory and cd into it
+```
+mkdir data_project
+cd data_project
+```
+2. Create and save the pollinator configuration file as  **config.json** using the following config template below in the project directory.
 
 ```
-cd path/to/project/dir 
+{
+    "platform":{
+        "name": "<PLATFORM_NAME>",
+        "executor": "celery",
+        "include_hive": true,
+        "include_aws": true,
+        "include_examples": true
+    },
+    "aws": {
+        "access_key_id": "<ACCESS_KEY_ID>",
+        "secret_access_key": "<SECRET_ACCESS_KEY>"
+    },
+    "postgres" : {
+        "user": "airflow",
+        "password": "airflow",
+        "port": 5439
+    },
+    "airflow": {
+        "email": {
+            "email_address": "<AIRFLOW_EMAIL_ADDRESS>",
+            "password": "<EMAIL_PASSWORD>",
+            "smtp_host": "smtp.google.org",
+            "smtp_port": 587
+        },
+        "authentication": false,
+        "accounts":[
+            {
+                "firstname": "<FIRST_NAME>",
+                "lastname": "<LAST_NAME>",
+                "email": "<USER_EMAIL>",
+                "password": "<LOGIN_PASSWORD>",
+                "username": "<USERNAME>"
+            }
+        ]
+    }
+}
+```
+3. Once the config.json file has been created run the following command to initialize your data infrastructure project directory.
+```
 pollinator
+```
+
+4. Now that you have successfully initalized, you should now be able to start your infrastructure using the following:
+```
+make build
+make run
+```
+
+5. To check if your infrastructure is ready, you should visit "localhost:8080".
+   
+6. To stop your infrastructure, run the following command:
+```
+CTRL+C
+make stop
 ```

@@ -1,0 +1,133 @@
+#
+# Copyright 2019 BrightHive Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FROM alpine:3.10
+LABEL maintainer="BrightHive <amanda@brighthive.io>"
+
+ARG	BUILD_NUMBER=-1
+ARG ORG="{{ environment.platform_name }}" 
+ARG AIRFLOW_VERSION="1.10.4" 
+ARG AIRFLOW_SUBMODULES="{{environment.airflow_submodules|join(",")|replace("'", "")}}" 
+
+ENV AIRFLOW_REPOSITORY="https://github.com/apache/airflow"
+ENV AIRFLOW_MODULE="git+${AIRFLOW_REPOSITORY}@${AIRFLOW_VERSION}#egg=apache-airflow[${AIRFLOW_SUBMODULES}]"
+ENV AIRFLOW_HOME="{{ environment.airflow_home }}"
+ENV PYMSSQL_BUILD_WITH_BUNDLED_FREETDS=1
+ENV PYTHONPATH=${PYTHONPATH:+${PYTHONPATH}:}${AIRFLOW_HOME}
+ENV AIRFLOW_GPL_UNIDECODE="yes"
+
+# Define en_US.
+ENV LANGUAGE en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+ENV LC_CTYPE en_US.UTF-8
+ENV LC_MESSAGES en_US.UTF-8
+
+# Install packages
+RUN apk update \
+	&& apk add --no-cache --virtual .build-deps \
+		build-base \
+		cyrus-sasl-dev \
+		freetds-dev \
+		freetype-dev \
+		krb5-dev \
+		libffi-dev \
+		libxml2-dev \
+		libxslt-dev \
+		linux-headers \
+        mariadb-dev	 \
+		nodejs \
+		nodejs-npm \
+		postgresql-dev \
+		tzdata \
+	&& apk add --no-cache \
+		bash \
+        python3-dev \
+		git \
+		openssl-dev \
+		libstdc++ \
+		g++ \
+		libc6-compat \
+    	linux-headers \
+		ca-certificates \
+		cyrus-sasl \
+		krb5-libs \
+        mariadb-connector-c \
+		postgresql \
+		python3 \
+		tini \
+	&& update-ca-certificates \
+	&& cp /usr/share/zoneinfo/UTC /etc/localtime \
+	&& pip3 install --no-cache-dir --upgrade pip==19.1.1 \
+	&& pip3 install --no-cache-dir --upgrade setuptools==39.0.1 \
+	&& pip3 install --no-cache-dir pytz \
+    && pip3 install --no-cache-dir pyOpenSSL \
+    && pip3 install --no-cache-dir ndg-httpsclient \
+    && pip3 install --no-cache-dir pyasn1 \
+	&& pip3 install --no-cache-dir cython \
+	&& pip3 install --no-cache-dir numpy \
+	&& pip3 install --no-cache-dir Flask==1.0.4 \
+	{% if environment.use_celery_executor -%}
+	&& pip3 install --no-cache-dir flower \
+	{% endif -%}
+	&& pip3 install --no-cache-dir flask_bcrypt \
+	&& pip3 install --no-cache-dir psycopg2-binary \
+	{% if environment.include_aws -%}
+	&& pip3 install awscli \
+	{% endif -%}
+	&& pip3 install --no-cache-dir "${AIRFLOW_MODULE}" \
+	&& pip3 install --no-cache-dir 'redis==3.2' \
+	&& cd /usr/lib/python3.7/site-packages/airflow/www_rbac \
+	&& npm install \
+	&& npm run build \
+	&& rm -rf node_modules \
+	&& apk del .build-deps \
+	&& ln -sf /usr/bin/python3 /usr/bin/python \
+	&& ln -sf /usr/bin/pip3 /usr/bin/pip
+
+# Create logs directory so we can own it when we mount volumes
+RUN mkdir -p ${AIRFLOW_HOME}/logs
+
+# Copy entrypoint to root
+COPY entrypoint /
+RUN chmod +x entrypoint
+
+# Copy cron scripts
+COPY clean-airflow-logs /etc/periodic/15min/clean-airflow-logs
+
+# Switch to AIRFLOW_HOME
+WORKDIR ${AIRFLOW_HOME}
+
+{% if environment.include_pipfile %}
+# Install Pipfile
+COPY Pipfile Pipfile
+COPY Pipfile.lock Pipfile.lock
+RUN pipenv install --system
+{% endif -%}
+
+{% if environment.include_requirements %}
+# Install pipfile or any other files
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+{% endif -%}
+
+# Add airflow configuration file 
+#COPY airflow/airflow.cfg airflow.cfg
+
+# Expose all airflow ports
+EXPOSE {{ environment.airflow_webserver_internal_port }} 5555 8793
+
+# Run airflow with minimal init
+ENTRYPOINT ["tini", "--", "/entrypoint"]

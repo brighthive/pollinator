@@ -1,0 +1,36 @@
+{
+    "platform":{
+        "name": "<PLATFORM_NAME>",
+        "executor": "celery",
+        "include_hive": true,
+        "include_aws": true,
+        "include_examples": true
+    },
+    "aws": {
+        "access_key_id": "<ACCESS_KEY_ID>",
+        "secret_access_key": "<SECRET_ACCESS_KEY>"
+    },
+    "postgres" : {
+        "user": "airflow",
+        "password": "airflow",
+        "port": 5439
+    },
+    "airflow": {
+        "email": {
+            "email_address": "<AIRFLOW_EMAIL_ADDRESS>",
+            "password": "<EMAIL_PASSWORD>",
+            "smtp_host": "smtp.google.org",
+            "smtp_port": 587
+        },
+        "authentication": false,
+        "accounts":[
+            {
+                "firstname": "<FIRST_NAME>",
+                "lastname": "<LAST_NAME>",
+                "email": "<USER_EMAIL>",
+                "password": "<LOGIN_PASSWORD>",
+                "username": "<USERNAME>"
+            }
+        ]
+    }
+}

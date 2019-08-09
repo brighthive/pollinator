@@ -1,0 +1,1 @@
+from pollinator.cli.cli import cli

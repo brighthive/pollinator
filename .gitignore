@@ -1,0 +1,10 @@
+config.json
+\.vscode/\.ropeproject/
+
+pollinator\.egg-info/
+
+pollinator/__pycache__/
+
+*.pyc
+
+\.vscode/settings\.json

@@ -1,0 +1,95 @@
+---
+version: "3"
+
+volumes:
+  postgres_data:
+  airflow_logs: 
+
+services:
+  redis:
+    image: redis:3.2.7
+    ports:
+      - "6379:6379"
+  
+  postgres:
+    image: postgres:11.2
+    restart: unless-stopped
+    ports:
+      - "{{ environment.postgres_exposed_port }}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER={{ environment.postgres_user }}
+      - POSTGRES_PASSWORD={{ environment.postgres_password }}
+      - POSTGRES_DB={{ environment.postgres_db}}
+  {% if environment.include_hive %}
+
+  hive:
+    image: cloudera/quickstart:latest
+    container_name: hive-docker
+    depends_on:
+        - postgres
+    ports:
+      - "8888:8888"
+      - "10000:10000"
+      - "7180:7180"
+      - "8020:8020"
+    hostname: quickstart.cloudera
+    privileged: true
+    tty: true
+    command: /usr/bin/docker-quickstart
+  {% endif %}
+
+  webserver:
+    image: {{ environment.docker_image_full_name }}
+    command: webserver
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - "{{ environment.airflow_webserver_internal_port }}:{{ environment.airflow_webserver_external_port}}"
+    volumes:
+      - ./airflow/dags:{{ environment.airflow_dags_folder }}:rw
+      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:rw
+      - airflow_logs:{{ environment.airflow_logs_folder }}
+      
+{% if environment.use_celery_executor %}
+  scheduler:
+    image: {{ environment.docker_image_full_name }}
+    command: scheduler
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    volumes:
+      - ./airflow/dags:{{ environment.airflow_dags_folder }}:rw
+      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:rw
+      - airflow_logs:{{ environment.airflow_logs_folder }}
+
+  flower:
+    image: {{ environment.docker_image_full_name }}
+    restart: unless-stopped
+    command: flower
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    ports:
+      - "5555:5555"
+
+  worker:
+    image: {{ environment.docker_image_full_name }}
+    restart: unless-stopped
+    command: worker
+    depends_on:
+      - scheduler
+    env_file:
+      - .env
+    volumes:
+      - ./airflow/dags:{{ environment.airflow_dags_folder }}:rw
+      - ./airflow/plugins:{{ environment.airflow_plugins_folder }}/plugins:rw
+      - airflow_logs:{{ environment.airflow_logs_folder }}
+{% endif %}

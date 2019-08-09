@@ -1,0 +1,14 @@
+-i https://pypi.org/simple
+-e .
+asn1crypto==0.24.0
+attrs==19.1.0
+cffi==1.12.3
+click==7.0
+cryptography==2.7
+jinja2==2.10.1
+jsonmerge==1.6.1
+jsonschema==3.0.1
+markupsafe==1.1.1
+pycparser==2.19
+pyrsistent==0.15.4
+six==1.12.0
