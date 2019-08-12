@@ -20,6 +20,9 @@ class PollinatorPlatformBuildError(PollinatorPlatformError):
 class PollinatorPlatformValidationError(PollinatorPlatformError):
     pass
 
+class PollinatorPlatformConfigAWSError(PollinatorPlatformError):
+    pass
+
 class PollinatorPlatformConfigErrorList(PollinatorPlatformError):
     def __init__(self, error_list):
         self.type = 'config'

@@ -87,6 +87,9 @@ RUN apk update \
 	{% if environment.include_aws -%}
 	&& pip3 install awscli \
 	{% endif -%}
+	{% if environment.include_pipfile -%}
+	&& pip3 install --no-cache-dir pipenv \
+	{% endif -%}
 	&& pip3 install --no-cache-dir "${AIRFLOW_MODULE}" \
 	&& pip3 install --no-cache-dir 'redis==3.2' \
 	&& cd /usr/lib/python3.7/site-packages/airflow/www_rbac \
@@ -97,8 +100,8 @@ RUN apk update \
 	&& ln -sf /usr/bin/python3 /usr/bin/python \
 	&& ln -sf /usr/bin/pip3 /usr/bin/pip
 
-# Create logs directory so we can own it when we mount volumes
-RUN mkdir -p ${AIRFLOW_HOME}/logs
+# Add airflow directory
+COPY airflow/ ${AIRFLOW_HOME}
 
 # Copy entrypoint to root
 COPY entrypoint /
@@ -110,21 +113,18 @@ COPY clean-airflow-logs /etc/periodic/15min/clean-airflow-logs
 # Switch to AIRFLOW_HOME
 WORKDIR ${AIRFLOW_HOME}
 
+
 {% if environment.include_pipfile %}
 # Install Pipfile
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
-RUN pipenv install --system
-{% endif -%}
+{%- endif %}
+
 
 {% if environment.include_requirements %}
 # Install pipfile or any other files
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
 {% endif -%}
-
-# Add airflow configuration file 
-#COPY airflow/airflow.cfg airflow.cfg
 
 # Expose all airflow ports
 EXPOSE {{ environment.airflow_webserver_internal_port }} 5555 8793

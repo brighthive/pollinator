@@ -241,7 +241,8 @@ class PollinatorEnvironment(object):
     @property
     def include_pipfile(self):
         pipfile_path = os.path.join(Config.PLATFORM_ROOT_PATH, 'Pipfile')
-        return os.path.exists(pipfile_path)
+        pipfile_lock_path = os.path.join(Config.PLATFORM_ROOT_PATH, 'Pipfile.lock')
+        return os.path.exists(pipfile_path) and os.path.exists(pipfile_lock_path)
 
     @property
     def include_requirements(self):

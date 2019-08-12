@@ -1,5 +1,5 @@
 requirements:
-	pipenv lock --requirements > requirements.txt
+	( pipenv lock --requirements > requirements.txt )
 
 install: requirements
 	pip install -e .
