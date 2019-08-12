@@ -113,18 +113,18 @@ COPY clean-airflow-logs /etc/periodic/15min/clean-airflow-logs
 # Switch to AIRFLOW_HOME
 WORKDIR ${AIRFLOW_HOME}
 
-
 {% if environment.include_pipfile %}
 # Install Pipfile
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
+RUN pipenv install --system
 {%- endif %}
 
-
-{% if environment.include_requirements %}
+{% if environment.include_requirements -%}
 # Install pipfile or any other files
 COPY requirements.txt requirements.txt
-{% endif -%}
+RUN pip3 install --user -r /requirements.txt
+{%- endif %}
 
 # Expose all airflow ports
 EXPOSE {{ environment.airflow_webserver_internal_port }} 5555 8793
