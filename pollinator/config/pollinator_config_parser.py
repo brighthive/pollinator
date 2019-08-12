@@ -142,9 +142,10 @@ class PollinatorConfigParser():
         config = Config()
         try:
             aws_credentials = config.get_aws_credentials()
+            print('Found AWS credentials on local system! Using local system AWS credentials')
             self.config['aws'] = aws_credentials
         except:
-            raise PollinatorPlatformConfigAWSError('No AWS Credentials Found! Please provide credentials')
+            raise PollinatorPlatformConfigAWSError('No AWS Credentials Found or invalid aws settings! Please provide credentials')
         
     def __validate(self):
         validation = jsonschema.Draft7Validator(self.__schema)

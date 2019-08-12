@@ -98,6 +98,17 @@ if [[ ! -z "$AWS_ACCESS_KEY_ID" && ! -z "$AWS_SECRET_ACCESS_KEY" ]]; then
 fi
 {% endif %}
 
+# Load additional python packages 
+if [ -e "requirements.txt" ]; then
+  echo "Installing requirements file..."
+  pip3 install --user -r /requirements.txt
+fi
+
+if [[ -e "Pipfile" ]] && [[ -e "Pipfile.lock" ]]; then
+  echo "Installing Pipfile..."
+  pipenv install --system
+fi
+
 # Load DAGs exemples (default: Yes)
 if [[ -z "$AIRFLOW__CORE__LOAD_EXAMPLES" && "${LOAD_EX:=n}" == n ]]; then
   AIRFLOW__CORE__LOAD_EXAMPLES=False

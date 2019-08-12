@@ -116,7 +116,7 @@ class Config:
         config_path = os.path.join(aws_dir, "config")
         config = configparser.ConfigParser()
         config.read(config_path)
-        
+
         config_profile_name = 'profile {}'.format(profile_name)
         assert config_profile_name in config.sections()
 

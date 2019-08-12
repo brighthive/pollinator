@@ -1,7 +1,7 @@
 # Pollinator
 Pollinator is a tool that rapidly generates a containerized Apache Airflow data pipeline infrastructure.
 
-## Airflow Data Platform Generation Tool 
+## Pollinator Overview
 
 Pollinator provides an open sourced python configuration framework for builing customized airflow platform for data engineering infrastructure. This is useful when:
  * You need to create multiple airflow platform projects on the fly
@@ -16,6 +16,7 @@ Pollinator is an easy, simple, and intuitive airflow based data engineering plat
 Pollinator requires the following:
  * Python >= 3.7.3
  * Pip package manager
+ * Pipenv
 
 To check to see if you have the proper requirements, try to run:
 ```
